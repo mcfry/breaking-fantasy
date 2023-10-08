@@ -1,8 +1,11 @@
+import Link from "next/link";
+
 import { ExtendedLeagueSchema } from "@/lib/types";
 
 async function getMyLeagues() {
   const res = await fetch("http://localhost:3000/api/leagues", {
     method: "GET",
+    cache: "no-store",
   });
 
   if (!res.ok) {
@@ -17,7 +20,7 @@ export default async function LeagueHome() {
 
   return (
     <section className="flex flex-col items-center justify-center">
-      <ul role="list" className="w-2/5 divide-y divide-gray-100">
+      <ul role="list" className="w-3/5 divide-y divide-gray-100">
         {leagues.map((league: ExtendedLeagueSchema) => {
           return (
             <li key={league._id} className="flex justify-between gap-x-6 py-5">
@@ -31,9 +34,13 @@ export default async function LeagueHome() {
                   </p>
                 </div>
               </div>
-              <div className="flex flex-col justify-center h-[3.1rem]">
+              <div className="flex flex-col items-end">
                 <p className="mt-1 text-xs leading-5 text-gray-500">
                   Created at: {league.createdAt.toLocaleString()}
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-red-500">
+                  <Link href={`/leagues/edit?id=${league._id}`}>Edit</Link>
                 </p>
               </div>
             </li>

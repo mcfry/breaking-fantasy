@@ -1,9 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
-import { LeagueSchema, TLeagueSchema } from "@/lib/types";
+import { LeagueSchema, TLeagueSchema, ExtendedLeagueSchema } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,17 +19,27 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 
-export function InputForm() {
+export function InputForm({ league }: { league: ExtendedLeagueSchema | null }) {
+  const router = useRouter();
+
   const form = useForm<TLeagueSchema>({
+    defaultValues: {
+      name: league ? league.name : "",
+      type: league ? league.type : "Manual",
+    },
     resolver: zodResolver(LeagueSchema),
   });
 
-  const errors = form.formState.errors;
-
   const onSubmit = async (data: TLeagueSchema) => {
     const response = await fetch("/api/leagues", {
-      method: "POST",
-      body: JSON.stringify(data),
+      method: league === null ? "POST" : "PATCH",
+      body:
+        league !== null
+          ? JSON.stringify({
+              ...league,
+              ...data,
+            })
+          : JSON.stringify(data),
       headers: { "Content-Type": "application/json" },
     });
 
@@ -83,7 +94,8 @@ export function InputForm() {
           ),
         });
 
-        form.reset();
+        router.refresh();
+        router.push("/leagues");
       }
     }
   };
@@ -94,7 +106,6 @@ export function InputForm() {
         <FormField
           control={form.control}
           name="name"
-          defaultValue=""
           render={({ field }) => (
             <FormItem>
               <FormLabel>League Name</FormLabel>
@@ -110,7 +121,6 @@ export function InputForm() {
         <FormField
           control={form.control}
           name="type"
-          defaultValue="Manual"
           render={({ field }) => (
             <FormItem>
               <FormControl>

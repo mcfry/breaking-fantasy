@@ -17,10 +17,10 @@ const sidebarNavItems = [
     title: "Create",
     href: "/leagues/create",
   },
-  {
-    title: "Edit",
-    href: "/leagues/edit",
-  },
+  // {
+  //   title: "Edit",
+  //   href: "/leagues/edit",
+  // },
 ];
 
 export default function LeaguesLayout({
