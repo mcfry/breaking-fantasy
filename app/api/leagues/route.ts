@@ -9,8 +9,6 @@ export async function POST(request: Request) {
   const body: TLeagueSchema = await request.json();
   await connectMongo();
 
-  console.log("POST", body);
-
   const result = LeagueSchema.safeParse(body);
   let zodErrors = {};
   if (!result.success) {
@@ -50,8 +48,6 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const body: ExtendedLeagueSchema = await request.json();
   await connectMongo();
-
-  console.log("PATCH", body);
 
   const result = LeagueSchema.safeParse(body);
   let zodErrors = {};
@@ -102,5 +98,36 @@ export async function GET(request: NextRequest) {
     // ALL
     let leagues = await League.find();
     return NextResponse.json({ leagues });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  await connectMongo();
+
+  const id = request.nextUrl.searchParams.get("id");
+
+  if (id) {
+    try {
+      let deletedCount = await League.deleteOne({ _id: id });
+      return NextResponse.json(deletedCount);
+    } catch (e) {
+      return NextResponse.json(
+        {
+          errors: "Error deleting league",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
+  } else {
+    return NextResponse.json(
+      {
+        errors: "No ID provided",
+      },
+      {
+        status: 400,
+      }
+    );
   }
 }

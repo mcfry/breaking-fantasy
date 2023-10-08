@@ -1,5 +1,4 @@
-import Link from "next/link";
-
+import LeagueClientActions from "./components/leagueClientActions";
 import { ExtendedLeagueSchema } from "@/lib/types";
 
 async function getMyLeagues() {
@@ -39,9 +38,7 @@ export default async function LeagueHome() {
                   Created at: {league.createdAt.toLocaleString()}
                 </p>
 
-                <p className="mt-1 text-xs leading-5 text-red-500">
-                  <Link href={`/leagues/edit?id=${league._id}`}>Edit</Link>
-                </p>
+                <LeagueClientActions id={league._id} />
               </div>
             </li>
           );
