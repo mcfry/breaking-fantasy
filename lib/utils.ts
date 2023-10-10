@@ -13,11 +13,8 @@ export function formatMongoDate(mongoDate: Date) {
   return luxonDate.toFormat("yyyy-MM-dd - HH:mm:ss");
 }
 
-export function xorLists<T>(list1: T[], list2: T[]) {
+export function removeStarters<T>(list1: T[], list2: T[]) {
   const result: T[] = [];
 
-  result.push(...list1.filter((item) => !list2.includes(item)));
-  result.push(...list2.filter((item) => !list1.includes(item)));
-
-  return result;
+  return list2.filter((item) => !list1.includes(item));
 }

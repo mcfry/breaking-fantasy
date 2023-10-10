@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import { z } from "zod";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,74 +15,99 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { xorLists } from "@/lib/utils";
+import { removeStarters } from "@/lib/utils";
 
-// TODO: figure out exact constraints
+import { getLeagues, getRosters, getUsers } from "@/client-api/sleeper";
+
+// TODO: figure out sleeper's exact constraints
 const username = z.string().min(2).max(20);
 
 export default function LeaguesAdd() {
+  const queryClient = useQueryClient();
   const usernameRef = useRef<HTMLInputElement | null>(null);
-  const [userIdSearched, setUserIdSearched] = useState("");
-  const [sleeperLeagues, setSleeperLeagues] = useState<any>();
-  const [sleeperRosters, setSleeperRosters] = useState<any>();
-  const [sleeperUsers, setSleeperUsers] = useState<any>();
-  const [selectValue, setSelectValue] = useState("");
+  const [selectValue, setSelectValue] = useState(""); // use zustand / context prob, if dont want reset upon renavigation
+
+  const [isLeaguesQueryEnabled, setIsLeaguesQueryEnabled] = useState(false);
+  const [isImportedQueryEnabled, setIsImportedQueryEnabled] = useState(false);
+
+  const {
+    data: leaguesData,
+    isLoading: leaguesLoading,
+    isError: leaguesError,
+  } = useQuery({
+    queryKey: ["leagues"],
+    queryFn: () => getLeagues(usernameRef.current?.value),
+    enabled: isLeaguesQueryEnabled,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  const {
+    data: importedRostersData,
+    isLoading: importedRostersLoading,
+    isError: importedRostersError,
+  } = useQuery({
+    queryKey: ["importedRosters", selectValue],
+    queryFn: () => getRosters(selectValue),
+    enabled: isImportedQueryEnabled,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
+
+  const {
+    data: importedUsersData,
+    isLoading: importedUsersLoading,
+    isError: importedUsersError,
+  } = useQuery({
+    queryKey: ["importedUsers", selectValue],
+    queryFn: () => getUsers(selectValue),
+    enabled: isImportedQueryEnabled,
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  });
 
   const handleGetLeagues = async () => {
     if (usernameRef.current) {
-      const userParse = username.safeParse(usernameRef.current?.value);
-      if (userParse.success === true) {
-        fetch(`https://api.sleeper.app/v1/user/${usernameRef.current?.value}`, {
-          method: "GET",
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data) {
-              setUserIdSearched(data.user_id);
-
-              fetch(
-                `https://api.sleeper.app/v1/user/${data.user_id}/leagues/nfl/2023`,
-                {
-                  method: "GET",
-                }
-              )
-                .then((res) => res.json())
-                .then((data) => {
-                  if (data) {
-                    console.log(data);
-                    setSleeperLeagues(data);
-                  }
-                });
-            }
-          });
-      }
+      queryClient.setQueryData(["leagues"], null);
+      queryClient.invalidateQueries({
+        queryKey: ["leagues"],
+      });
+      setIsLeaguesQueryEnabled(true);
     }
   };
 
   const handleImportLeague = () => {
     if (selectValue) {
-      fetch(`https://api.sleeper.app/v1/league/${selectValue}/rosters`, {
-        method: "GET",
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data) setSleeperRosters(data);
-        });
+      queryClient.setQueryData(["importedRosters", selectValue], null);
+      queryClient.invalidateQueries({
+        queryKey: ["importedRosters", selectValue],
+      });
 
-      fetch(`https://api.sleeper.app/v1/league/${selectValue}/users`, {
-        method: "GET",
-      })
-        .then((res) => res.json())
-        .then((data) => {
-          if (data) setSleeperUsers(data);
-        });
+      queryClient.setQueryData(["importedUsers", selectValue], null);
+      queryClient.invalidateQueries({
+        queryKey: ["importedUsers", selectValue],
+      });
+
+      setIsImportedQueryEnabled(true);
     }
   };
+
+  if (leaguesLoading || importedRostersLoading || importedUsersLoading) {
+    return (
+      <section className="flex flex-col items-center justify-center space-y-10">
+        <span>Loading....</span>
+        <Loader2 className="h-12 w-12 animate-spin" />
+      </section>
+    );
+  }
 
   return (
     <section className="flex flex-col items-center justify-center space-y-10">
       <h4 className="text-xl font-bold">Import League</h4>
-      {!userIdSearched && (
+      {!leaguesData && (
         <div className="w-3/5 space-y-2">
           <Label
             htmlFor="username"
@@ -104,14 +131,14 @@ export default function LeaguesAdd() {
         </div>
       )}
 
-      {sleeperLeagues && (!sleeperRosters || !sleeperUsers) && (
+      {leaguesData && (!importedRostersData || !importedUsersData) && (
         <>
           <Select value={selectValue} onValueChange={setSelectValue}>
             <SelectTrigger className="w-3/5">
               <SelectValue placeholder="Select one of your leagues" />
             </SelectTrigger>
             <SelectContent>
-              {sleeperLeagues.map((league: any) => (
+              {leaguesData.map((league: any) => (
                 <SelectItem key={league.league_id} value={league.league_id}>
                   {league.name}
                 </SelectItem>
@@ -125,20 +152,28 @@ export default function LeaguesAdd() {
         </>
       )}
 
-      {sleeperRosters && sleeperUsers && (
+      {importedRostersData && importedUsersData && (
         <>
-          {sleeperRosters.map((roster: any) => {
+          {importedRostersData.map((roster: any) => {
+            const removedStarterZeros = roster.starters.filter(
+              (item: string) => item !== "0"
+            );
+
+            const removedPlayerZeros = roster.players.filter(
+              (item: string) => item !== "0"
+            );
+
             return (
               <ul key={roster.owner_id}>
-                {roster.starters.map((starter: number, index: number) => {
+                {removedStarterZeros.map((starter: string, index: number) => {
                   return <li key={starter}>{starter}</li>;
                 })}
 
-                {xorLists(
-                  roster.starters as number[],
-                  roster.players as number[]
-                ).map((starter) => {
-                  return <li key={starter}>{starter}</li>;
+                {removeStarters(
+                  removedStarterZeros as string[],
+                  removedPlayerZeros as string[]
+                ).map((benched) => {
+                  return <li key={benched}>{benched}</li>;
                 })}
               </ul>
             );
