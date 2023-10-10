@@ -2,10 +2,10 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Leagues",
-  description: "Leagues create.",
+  description: "Import a league.",
 };
 
-export default function LeaguesCreateLayout({
+export default function LeaguesAddLayout({
   children,
 }: {
   children: React.ReactNode;

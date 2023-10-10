@@ -1,7 +1,8 @@
+import Link from "next/link";
 import LeagueClientActions from "./components/leagueClientActions";
 import { ExtendedLeagueSchema } from "@/lib/types";
 
-async function getMyLeagues() {
+async function getLeagues() {
   const res = await fetch("http://localhost:3000/api/leagues", {
     method: "GET",
     cache: "no-store",
@@ -14,8 +15,8 @@ async function getMyLeagues() {
   return res.json();
 }
 
-export default async function LeagueHome() {
-  const { leagues }: { leagues: ExtendedLeagueSchema[] } = await getMyLeagues();
+export default async function Leagues() {
+  const { leagues }: { leagues: ExtendedLeagueSchema[] } = await getLeagues();
 
   return (
     <section className="flex flex-col items-center justify-center">
@@ -26,7 +27,9 @@ export default async function LeagueHome() {
               <div className="flex min-w-0 gap-x-4">
                 <div className="min-w-0 flex-auto">
                   <p className="text-sm font-semibold leading-6 text-gray-900">
-                    {league.name}
+                    <Link href={`/leagueTeams/${league.name}`}>
+                      {league.name}
+                    </Link>
                   </p>
                   <p className="mt-1 truncate text-xs leading-5 text-gray-500">
                     {league.type}

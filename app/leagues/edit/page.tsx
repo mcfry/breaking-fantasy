@@ -1,4 +1,4 @@
-import { InputForm } from "../components/form";
+import { LeaguesForm } from "../components/leaguesForm";
 
 async function getLeague(id: string) {
   const res = await fetch(`http://localhost:3000/api/leagues?id=${id}`, {
@@ -24,8 +24,8 @@ export default async function LeaguesEdit({
 
   return (
     <section className="flex flex-col items-center justify-center">
-      Edit
-      <InputForm league={league} />
+      Edit League
+      <LeaguesForm league={league} />
     </section>
   );
 }

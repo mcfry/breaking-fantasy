@@ -89,10 +89,15 @@ export async function GET(request: NextRequest) {
   await connectMongo();
 
   const id = request.nextUrl.searchParams.get("id");
+  const slug = request.nextUrl.searchParams.get("slug");
 
   if (id) {
     // By ID
     let league = await League.findById(id);
+    return NextResponse.json(league);
+  } else if (slug) {
+    // By slug (name)
+    let league = await League.findOne({ name: slug });
     return NextResponse.json(league);
   } else {
     // ALL

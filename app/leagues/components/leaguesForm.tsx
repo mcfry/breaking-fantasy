@@ -19,7 +19,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 
-export function InputForm({ league }: { league: ExtendedLeagueSchema | null }) {
+export function LeaguesForm({
+  league,
+}: {
+  league: ExtendedLeagueSchema | null;
+}) {
   const router = useRouter();
 
   const form = useForm<TLeagueSchema>({

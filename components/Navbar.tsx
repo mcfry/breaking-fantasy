@@ -1,7 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+
+import { ExtendedLeagueSchema } from "@/lib/types";
 
 import { cn } from "@/lib/utils";
 import {
@@ -28,11 +31,24 @@ const components: { title: string; href: string; description: string }[] = [
 ];
 
 export default function Navbar() {
+  const [leagues, setLeagues] = useState<ExtendedLeagueSchema[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3000/api/leagues", {
+      method: "GET",
+      cache: "no-store",
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+      })
+      .then((data) => setLeagues(data.leagues));
+  }, []);
+
   return (
     <NavigationMenu className="justify-between p-2 bg-slate-100 pl-6 pr-6">
       <NavigationMenuList>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Create League</NavigationMenuTrigger>
+          <NavigationMenuTrigger>Manage</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid gap-3 p-6 md:w-[400px] lg:w-[500px] lg:grid-cols-[.75fr_1fr]">
               <li className="row-span-3">
@@ -42,7 +58,7 @@ export default function Navbar() {
                     href="/leagues"
                   >
                     <div className="mb-2 mt-4 text-lg font-medium">
-                      Create your League
+                      Leagues Home
                     </div>
                     <p className="text-sm leading-tight text-muted-foreground">
                       Manually create your own custom league, or import directly
@@ -51,13 +67,13 @@ export default function Navbar() {
                   </a>
                 </NavigationMenuLink>
               </li>
-              <ListItem href="/manual" title="Create">
+              <ListItem href="/leagues/create" title="Create">
                 Manually create your league.
               </ListItem>
-              <ListItem href="/import" title="Import Sleeper">
+              <ListItem href="/leagues/import" title="Import Sleeper">
                 Import from Sleeper.
               </ListItem>
-              <ListItem href="/import" title="Import Espn">
+              <ListItem href="/leagues/import" title="Import Espn">
                 Import from Espn.
               </ListItem>
             </ul>
@@ -67,15 +83,20 @@ export default function Navbar() {
           <NavigationMenuTrigger>My Leagues</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
-              {components.map((component) => (
+              {leagues.slice(0, 9).map((league) => (
                 <ListItem
-                  key={component.title}
-                  title={component.title}
-                  href={component.href}
+                  key={league._id}
+                  title={league.name}
+                  href={`/leagueTeams/${league.name}`}
                 >
-                  {component.description}
+                  {`${league.type} league ${
+                    league.type === "Manual" ? "created" : "imported"
+                  } on ${league.createdAt}`}
                 </ListItem>
               ))}
+              <ListItem key="more" title="More" href="/leagues">
+                More leagues
+              </ListItem>
             </ul>
           </NavigationMenuContent>
         </NavigationMenuItem>
