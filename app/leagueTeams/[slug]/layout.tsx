@@ -20,11 +20,11 @@ export default function LeagueTeamsLayout({
   const sidebarNavItems = [
     {
       title: `League: ${leagueName}`,
-      href: `/teams/${params.slug}`,
+      href: `/leagueTeams/${params.slug}`,
     },
     {
       title: "Add Team",
-      href: "/teams/add",
+      href: "/leagueTeams/add",
     },
   ];
 

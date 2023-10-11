@@ -1,5 +1,6 @@
 import { LeaguesForm } from "../components/leaguesForm";
 
+// TODO: update url with process.env, has to be absolute value...
 async function getLeague(id: string) {
   const res = await fetch(`http://localhost:3000/api/leagues?id=${id}`, {
     method: "GET",
@@ -24,7 +25,6 @@ export default async function LeaguesEdit({
 
   return (
     <section className="flex flex-col items-center justify-center">
-      Edit League
       <LeaguesForm league={league} />
     </section>
   );
