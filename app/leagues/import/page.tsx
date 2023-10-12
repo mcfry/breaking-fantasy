@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, useRef } from "react";
 import { z } from "zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "@/components/ui/use-toast";
 import { removeStarters } from "@/lib/utils";
 
 import { getLeagues, getRosters, getUsers } from "@/client-api/sleeper";
@@ -26,6 +28,7 @@ import { TSleeperLeagueSchema, TSleeperRosterSchema } from "@/lib/types";
 const username = z.string().min(2).max(20);
 
 export default function LeaguesAdd() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const usernameRef = useRef<HTMLInputElement | null>(null);
   const [selectValue, setSelectValue] = useState(""); // use zustand / context prob, if dont want reset upon renavigation
@@ -123,6 +126,77 @@ export default function LeaguesAdd() {
     }
   };
 
+  const handleCreateFromImport = async () => {
+    if (leaguesData && selectValue) {
+      const leagueIndex = leaguesData.findIndex(
+        (league) => league.league_id === selectValue
+      );
+
+      const response = await fetch("/api/leagues", {
+        method: "POST",
+        body: JSON.stringify({
+          type: "Sleeper",
+          leagueId: selectValue,
+          name: leaguesData[leagueIndex].name,
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        toast({
+          variant: "destructive",
+          title: "Importing league failed with values:",
+          description: (
+            <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+              <code className="text-white">
+                {JSON.stringify(selectValue, null, 2)}
+              </code>
+            </pre>
+          ),
+        });
+
+        return;
+      } else {
+        const responseData = await response.json();
+        if (responseData.errors) {
+          const errors = responseData.errors;
+          if (!errors.name && !errors.type) {
+            toast({
+              variant: "destructive",
+              title: "Something went wrong",
+              description: (
+                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+                  <code className="text-white">Oopsies.</code>
+                </pre>
+              ),
+            });
+          }
+        } else {
+          toast({
+            title: "Submission successful",
+            description: (
+              <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+                <code className="text-white">You the greatest!</code>
+              </pre>
+            ),
+          });
+
+          router.refresh();
+          router.push("/leagues");
+        }
+      }
+    } else {
+      toast({
+        title: "Error",
+        description: (
+          <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+            <code className="text-white">No league data.</code>
+          </pre>
+        ),
+      });
+    }
+  };
+
   if (
     leaguesLoading ||
     importedRostersLoading ||
@@ -144,6 +218,8 @@ export default function LeaguesAdd() {
 
     throw new Error("No valid stage");
   };
+
+  console.log(sleeperPlayersData);
 
   return (
     <section className="flex flex-col items-center justify-center space-y-10">
@@ -202,45 +278,77 @@ export default function LeaguesAdd() {
         )}
 
         {getStage() === 3 && (
-          <div className="grid grid-cols-2 gap-4">
-            {importedRostersData?.map((roster: TSleeperRosterSchema) => {
-              const removedStarterZeros = roster.starters.filter(
-                (item: string) => item !== "0"
-              );
+          <>
+            <Button type="button" onClick={() => handleCreateFromImport()}>
+              Confirm this League
+            </Button>
 
-              const removedPlayerZeros = roster.players.filter(
-                (item: string) => item !== "0"
-              );
+            <div className="grid grid-cols-2 gap-12">
+              {importedRostersData?.map((roster: TSleeperRosterSchema) => {
+                const removedStarterZeros = roster.starters.filter(
+                  (item: string) => item !== "0"
+                );
 
-              return (
-                <div key={roster.owner_id}>
-                  {roster.owner_id}
-                  <ul className="col-span-1 flex flex-col items-center">
-                    {removedStarterZeros.map(
-                      (starter: string, index: number) => {
+                const removedPlayerZeros = roster.players.filter(
+                  (item: string) => item !== "0"
+                );
+
+                return (
+                  <div
+                    key={roster.owner_id}
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                        &nbsp;
+                        {importedUsersData &&
+                          importedUsersData[roster.owner_id].display_name}
+                        &nbsp;
+                      </span>
+                      <span className="scroll-m-20 font-semibold tracking-tight">
+                        &nbsp;
+                        {importedUsersData &&
+                          importedUsersData[roster.owner_id].team_name}
+                        &nbsp;
+                      </span>
+                    </div>
+                    <ul className="col-span-1 flex flex-col items-center border-t-2 border-primary rounded-none">
+                      {removedStarterZeros.map((starter: string) => {
                         return (
-                          <li key={starter}>
-                            {sleeperPlayersData[starter].full_name}
+                          <li
+                            key={starter}
+                            className="flex justify-center items-center w-full p-2 border-b-2 border-l-2 border-r-2 border-primary rounded-none"
+                          >
+                            <span>
+                              {sleeperPlayersData[starter].full_name ||
+                                sleeperPlayersData[starter].team}
+                            </span>
                           </li>
                         );
-                      }
-                    )}
+                      })}
 
-                    {removeStarters(
-                      removedStarterZeros as string[],
-                      removedPlayerZeros as string[]
-                    ).map((benched) => {
-                      return (
-                        <li key={benched}>
-                          {sleeperPlayersData[benched].full_name}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
+                      {removeStarters(
+                        removedStarterZeros as string[],
+                        removedPlayerZeros as string[]
+                      ).map((benched) => {
+                        return (
+                          <li
+                            key={benched}
+                            className="flex justify-center items-center w-full p-2 border-b-2 border-l-2 border-r-2 border-primary rounded-none"
+                          >
+                            <span>
+                              {sleeperPlayersData[benched].full_name ||
+                                sleeperPlayersData[benched].team}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </section>

@@ -10,6 +10,7 @@ export const LeagueSchema = z.object({
   type: z.string().refine((val) => validLeagueTypes.includes(val), {
     message: "Invalid league type",
   }),
+  leagueId: z.string().optional(),
 });
 
 export type TLeagueSchema = z.infer<typeof LeagueSchema>;

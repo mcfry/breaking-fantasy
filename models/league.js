@@ -18,6 +18,10 @@ const leagueSchema = new Schema(
       required: true,
       validate: [validateType, "Invalid league type"],
     },
+    leagueId: {
+      type: String,
+      unique: true,
+    },
   },
   {
     timestamps: true,
