@@ -8,13 +8,28 @@ export const metadata: Metadata = {
   description: "League management.",
 };
 
-export default function LeagueTeamsLayout({
+async function getLeague(slug: string) {
+  // request is de-duped by Next if requested again in a page
+  const res = await fetch(`http://localhost:3000/api/leagues?slug=${slug}`, {
+    method: "GET",
+    //cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch data");
+  }
+
+  return res.json();
+}
+
+export default async function LeagueTeamsLayout({
   children,
   params,
 }: {
   children: React.ReactNode;
   params: { slug: string };
 }) {
+  const league = await getLeague(params.slug);
   const leagueName = decodeURIComponent(params.slug);
 
   const sidebarNavItems = [
@@ -22,11 +37,14 @@ export default function LeagueTeamsLayout({
       title: `League: ${leagueName}`,
       href: `/leagueTeams/${params.slug}`,
     },
-    {
-      title: "Add Team",
-      href: "/leagueTeams/add",
-    },
   ];
+
+  if (league.type === "Manual") {
+    sidebarNavItems.push({
+      title: "Add Team",
+      href: `/leagueTeams/${params.slug}/add`,
+    });
+  }
 
   return (
     <>

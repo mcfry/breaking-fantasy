@@ -219,8 +219,6 @@ export default function LeaguesAdd() {
     throw new Error("No valid stage");
   };
 
-  console.log(sleeperPlayersData);
-
   return (
     <section className="flex flex-col items-center justify-center space-y-10">
       <div className="flex flex-col w-3/5 space-y-8">

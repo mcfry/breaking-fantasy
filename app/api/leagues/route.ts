@@ -5,7 +5,7 @@ import League from "@/models/league";
 
 import { LeagueSchema, TLeagueSchema, ExtendedLeagueSchema } from "@/lib/types";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   const body: TLeagueSchema = await request.json();
   await connectMongo();
 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   const body: ExtendedLeagueSchema = await request.json();
   await connectMongo();
 

@@ -84,3 +84,19 @@ export type TSleeperLeagueUsersSchema = z.infer<
 >;
 
 // --
+
+export const LeagueTeamSchema = z.object({
+  leagueId: z.string(),
+  name: z.string(),
+  user_display_name: z.string(),
+});
+
+export type TLeagueTeamSchema = z.infer<typeof LeagueTeamSchema>;
+
+export type ExtendedLeagueTeamSchema = TLeagueTeamSchema & {
+  _id: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+// --

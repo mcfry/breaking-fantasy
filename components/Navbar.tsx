@@ -67,7 +67,7 @@ export default function Navbar() {
                   </a>
                 </NavigationMenuLink>
               </li>
-              <ListItem href="/leagues/create" title="Create">
+              <ListItem href="/leagues/add" title="Create">
                 Manually create your league.
               </ListItem>
               <ListItem href="/leagues/import" title="Import Sleeper">

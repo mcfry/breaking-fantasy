@@ -6,13 +6,16 @@ const teamSchema = new Schema(
       type: String,
       required: true,
     },
-    playerId: {
+    name: {
+      type: String,
+      required: true,
+    },
+    user_display_name: {
       type: String,
       required: true,
     },
     players: {
-      type: Array,
-      required: true,
+      type: [String],
     },
   },
   {
@@ -20,6 +23,6 @@ const teamSchema = new Schema(
   }
 );
 
-const Team = mongoose.models.Team || mongoose.model("Team", teamSchema);
+const Team = mongoose.models.team || mongoose.model("team", teamSchema);
 
 export default Team;
