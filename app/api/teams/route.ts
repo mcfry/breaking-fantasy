@@ -9,6 +9,33 @@ import {
   ExtendedLeagueTeamSchema,
 } from "@/lib/types";
 
+export async function GET(request: NextRequest) {
+  await connectMongo();
+
+  const id = request.nextUrl.searchParams.get("id");
+  const slug = request.nextUrl.searchParams.get("slug");
+
+  if (id) {
+    // By ID
+    let teams = await Team.find({ leagueId: id });
+
+    return NextResponse.json(teams);
+  } else if (slug) {
+    // By slug (name)
+    let teams = await Team.findOne({ name: slug });
+    return NextResponse.json(teams);
+  } else {
+    return NextResponse.json(
+      {
+        errors: "Not enough information given",
+      },
+      {
+        status: 400,
+      }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body: TLeagueTeamSchema = await request.json();
   await connectMongo();

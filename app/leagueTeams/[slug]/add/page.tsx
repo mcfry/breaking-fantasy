@@ -1,4 +1,3 @@
-import { formatMongoDate } from "@/lib/utils";
 import { LeagueTeamsForm } from "../../components/leagueTeamsForm";
 
 async function getLeague(slug: string) {

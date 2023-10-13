@@ -107,7 +107,7 @@ export function LeagueTeamsForm({
         });
 
         router.refresh();
-        router.push("/leagues");
+        router.push(`/leagueTeams/${league.name}`);
       }
     }
   };
