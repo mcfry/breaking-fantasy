@@ -95,8 +95,26 @@ export type TLeagueTeamSchema = z.infer<typeof LeagueTeamSchema>;
 
 export type ExtendedLeagueTeamSchema = TLeagueTeamSchema & {
   _id: string;
+  players: string[];
   createdAt: Date;
   updatedAt: Date;
+};
+
+// --
+
+export const PlayerAddSchema = z.object({
+  player_name: z.string(),
+  position: z.string(),
+});
+
+export type TPlayerAddSchema = z.infer<typeof PlayerAddSchema>;
+
+// --
+
+export type TUserRosterInfo = {
+  username: string;
+  display_name: string;
+  team_name: String;
 };
 
 // --

@@ -1,5 +1,5 @@
 import { removeStarters } from "@/lib/utils";
-import { TSleeperRosterSchema } from "@/lib/types";
+import { TSleeperRosterSchema, TUserRosterInfo } from "@/lib/types";
 
 export function SleeperRosters({
   rosters,
@@ -7,7 +7,7 @@ export function SleeperRosters({
   players,
 }: {
   rosters: TSleeperRosterSchema[];
-  users: any;
+  users: Record<string, TUserRosterInfo>;
   players: any;
 }) {
   return (

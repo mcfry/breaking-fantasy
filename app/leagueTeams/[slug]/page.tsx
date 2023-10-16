@@ -1,9 +1,14 @@
 import React, { Fragment } from "react";
+import Link from "next/link";
 import { formatMongoDate } from "@/lib/utils";
 import { getRosters, getUsers } from "@/client-api/sleeper";
 import { getPlayers } from "@/client-api/players";
 
-import { TSleeperRosterSchema } from "@/lib/types";
+import {
+  TSleeperRosterSchema,
+  TUserRosterInfo,
+  ExtendedLeagueTeamSchema,
+} from "@/lib/types";
 import { SleeperRosters } from "../components/sleeperRosters";
 
 async function getLeague(slug: string) {
@@ -20,10 +25,13 @@ async function getLeague(slug: string) {
 }
 
 async function getTeams(leagueId: string) {
-  const res = await fetch(`http://localhost:3000/api/teams?id=${leagueId}`, {
-    method: "GET",
-    cache: "no-store",
-  });
+  const res = await fetch(
+    `http://localhost:3000/api/teams?leagueId=${leagueId}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    }
+  );
 
   if (!res.ok) {
     throw new Error("Failed to fetch data");
@@ -57,8 +65,8 @@ export default async function LeagueTeams({
     );
   }
 
-  let rosters = null;
-  let users: any = null;
+  let rosters: TSleeperRosterSchema[] = [];
+  let users: Record<string, TUserRosterInfo> = {};
   let playerIds: string[] = [];
   let players: any = [];
 
@@ -79,7 +87,7 @@ export default async function LeagueTeams({
     players = await getPlayers(playerIds);
   }
 
-  let teams = null;
+  let teams: ExtendedLeagueTeamSchema[] = [];
   if (league.type === "Manual") {
     teams = await getTeams(league._id);
   }
@@ -102,7 +110,7 @@ export default async function LeagueTeams({
         )}
 
         {teams &&
-          teams.map((team: any) => {
+          teams.map((team: ExtendedLeagueTeamSchema) => {
             return (
               <React.Fragment key={team._id}>
                 <div className="flex flex-col items-center justify-center">
@@ -118,8 +126,10 @@ export default async function LeagueTeams({
                   </span>
 
                   <div className="flex flex-col items-center justify-center mt-4">
-                    <div>0 Players</div>
-                    <div>Add Players</div>
+                    <div>{team.players.length} Players</div>
+                    <Link href={`/rosters/${league._id}/${team._id}/add`}>
+                      Add Players
+                    </Link>
                   </div>
                 </div>
               </React.Fragment>

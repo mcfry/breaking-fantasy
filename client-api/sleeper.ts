@@ -4,13 +4,8 @@ import {
   TSleeperLeagueSchema,
   TSleeperRosterSchema,
   TSleeperLeagueUsersSchema,
+  TUserRosterInfo,
 } from "@/lib/types";
-
-type UserRosterInfo = {
-  username: string;
-  display_name: string;
-  team_name: String;
-};
 
 const getLeagues = async (
   userId: string | undefined
@@ -34,13 +29,13 @@ const getRosters = async (
 
 const getUsers = async (
   leagueId: string
-): Promise<Record<string, UserRosterInfo>> => {
+): Promise<Record<string, TUserRosterInfo>> => {
   const response = await axios.get(
     `https://api.sleeper.app/v1/league/${leagueId}/users`
   );
   const sleeperLeagueUsers: TSleeperLeagueUsersSchema[] = response.data;
 
-  const usersObj: Record<string, UserRosterInfo> = {};
+  const usersObj: Record<string, TUserRosterInfo> = {};
   for (let user of sleeperLeagueUsers) {
     usersObj[user.user_id] = {
       username: user.username,

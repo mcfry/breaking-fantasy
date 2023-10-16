@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
 
   const id = request.nextUrl.searchParams.get("id");
   const ids = request.nextUrl.searchParams.get("ids");
-  const slug = request.nextUrl.searchParams.get("slug");
+  const search = request.nextUrl.searchParams.get("search");
+  const position = request.nextUrl.searchParams.get("position");
 
   if (id) {
     // By ID
@@ -36,10 +37,51 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(playersObj);
-  } else if (slug) {
-    // By slug (name)
-    let player = await Player.findOne({ full_name: slug });
-    return NextResponse.json(player);
+  } else if (search && position) {
+    // By search (text index on full_name field)
+    let players = await Player.aggregate([
+      {
+        $search: {
+          index: "player_name",
+          autocomplete: {
+            path: "full_name",
+            query: search,
+            tokenOrder: "any",
+            fuzzy: {
+              maxEdits: 1,
+              prefixLength: 1,
+              maxExpansions: 256,
+            },
+          },
+          highlight: {
+            path: "full_name",
+          },
+        },
+      },
+      {
+        $match: {
+          position: position,
+        },
+      },
+      {
+        $limit: 10,
+      },
+      {
+        $project: {
+          _id: 0,
+          first_name: 1,
+          last_name: 1,
+          position: 1,
+          highlights: {
+            $meta: "searchHighlights",
+          },
+        },
+      },
+    ]);
+
+    console.log(players);
+
+    return NextResponse.json(players);
   } else {
     return NextResponse.json(
       {

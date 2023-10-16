@@ -5,6 +5,27 @@ import League from "@/models/league";
 
 import { LeagueSchema, TLeagueSchema, ExtendedLeagueSchema } from "@/lib/types";
 
+export async function GET(request: NextRequest) {
+  await connectMongo();
+
+  const id = request.nextUrl.searchParams.get("id");
+  const slug = request.nextUrl.searchParams.get("slug");
+
+  if (id) {
+    // By ID
+    let league = await League.findById(id);
+    return NextResponse.json(league);
+  } else if (slug) {
+    // By slug (name)
+    let league = await League.findOne({ name: slug });
+    return NextResponse.json(league);
+  } else {
+    // ALL
+    let leagues = await League.find();
+    return NextResponse.json({ leagues });
+  }
+}
+
 export async function POST(request: NextRequest) {
   const body: TLeagueSchema = await request.json();
   await connectMongo();
@@ -82,27 +103,6 @@ export async function PATCH(request: NextRequest) {
         }
       );
     }
-  }
-}
-
-export async function GET(request: NextRequest) {
-  await connectMongo();
-
-  const id = request.nextUrl.searchParams.get("id");
-  const slug = request.nextUrl.searchParams.get("slug");
-
-  if (id) {
-    // By ID
-    let league = await League.findById(id);
-    return NextResponse.json(league);
-  } else if (slug) {
-    // By slug (name)
-    let league = await League.findOne({ name: slug });
-    return NextResponse.json(league);
-  } else {
-    // ALL
-    let leagues = await League.find();
-    return NextResponse.json({ leagues });
   }
 }
 

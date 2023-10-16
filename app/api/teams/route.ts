@@ -13,17 +13,25 @@ export async function GET(request: NextRequest) {
   await connectMongo();
 
   const id = request.nextUrl.searchParams.get("id");
+  const leagueId = request.nextUrl.searchParams.get("leagueId");
   const slug = request.nextUrl.searchParams.get("slug");
 
   if (id) {
     // By ID
-    let teams = await Team.find({ leagueId: id });
+    let team: ExtendedLeagueTeamSchema | null = await Team.findById(id);
+
+    return NextResponse.json(team);
+  } else if (leagueId) {
+    // Find many by leagueId
+    let teams: ExtendedLeagueTeamSchema[] = await Team.find({ leagueId });
 
     return NextResponse.json(teams);
   } else if (slug) {
     // By slug (name)
-    let teams = await Team.findOne({ name: slug });
-    return NextResponse.json(teams);
+    let team: ExtendedLeagueTeamSchema | null = await Team.findOne({
+      name: slug,
+    });
+    return NextResponse.json(team);
   } else {
     return NextResponse.json(
       {
